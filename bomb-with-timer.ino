@@ -14,7 +14,7 @@ void timeDown(){ //Decrement time variable, counting in seconds
     //TO ADD: Play beep/tone to signal failure
     delay(300);//wait a moment, then...
     loop(); //reset loop()
-    //THIS METHOD OF RESETTING IS DEEPLY FLAWED, THE PROBLEM WILL CRASH EVENTUALLY BY DOING THIS.
+    //THIS METHOD OF RESETTING IS DEEPLY FLAWED, THE PROGRAM WILL CRASH EVENTUALLY BY DOING THIS.
     //I believe it's a fine enough solution for us, as there isn't a lot of memory being used, and we can always manually reset if needed.
   }
 }
