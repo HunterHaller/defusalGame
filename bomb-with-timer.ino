@@ -120,7 +120,7 @@ int puzzle_1() {    //PUSH BUTTON SEQUENCE
   if (butChoice == 1) {
     int btnSltn[4] = {1, 2, 2, 1};
     int mySltn[4] = {1, 2, 2, 1};
-      
+
     //Red-blue flash
     digitalWrite(red_led, HIGH);  //LED signal could be tied to a TimedAction to let it repeat every so often while user is working on it
     delay(100);
@@ -184,8 +184,8 @@ int puzzle_1() {    //PUSH BUTTON SEQUENCE
   else if (butChoice == 2) {
     int btnSltn[4] = {2, 1, 1, 2};
     int mySltn[4] = {2, 1, 1, 2};
-      
-    //Red-yellow flash  
+
+    //Red-yellow flash
     digitalWrite(red_led, HIGH);
     delay(100);
     digitalWrite(red_led, LOW);
@@ -248,8 +248,8 @@ int puzzle_1() {    //PUSH BUTTON SEQUENCE
   else if (butChoice == 3) {
     int btnSltn[4] = {1, 2, 1, 2};
     int mySltn[4] = {1, 2, 1, 2};
-      
-    //Red-green flash  
+
+    //Red-green flash
     digitalWrite(red_led, HIGH);
     delay(100);
     digitalWrite(red_led, LOW);
@@ -311,31 +311,69 @@ int puzzle_1() {    //PUSH BUTTON SEQUENCE
 
   Serial.println("Hey, you did it!");
 
-  return puzzle_2_1(); //if win, go another level down
+  return puzzle_2(); //if win, go another level down
 }
 
 int puzzle_2() {
   Serial.println("WELCOME TO PUZZLE 2");
 
-  digitalWrite(green_led, HIGH);
-  delay(100);
-  digitalWrite(green_led, LOW);
-  delay(100);
-  digitalWrite(yellow_led, HIGH);
-  delay(100);
-  digitalWrite(yellow_led, LOW);
-  delay(100);
+  int wireChoice = random(1, 3);
 
-  while (digitalRead(6) == LOW) {
-    //Serial.println("Waiting for input...");
+  if (wireChoice == 1) {
+    digitalWrite(green_led, HIGH);
+    delay(100);
+    digitalWrite(green_led, LOW);
+    delay(100);
+    digitalWrite(yellow_led, HIGH);
+    delay(100);
+    digitalWrite(yellow_led, LOW);
+    delay(100);
+      
+    int wireSltn[2] = {2, 1};
+    int myWire[2] = {2, 1};
+      
+    while(digitalRead(7) == HIGH){
+      //Do nothing, because this one THEN the other shouldn't do anything
+    }
+
+    while (digitalRead(6) == LOW) {
+      //Serial.println("Waiting for input...");
+    }
+
+    while (digitalRead(6) == HIGH) {
+      while (digitalRead(7) == LOW) {}
+      if (digitalRead(7) == HIGH) {
+        return finish(); //if win
+      }
+    }
   }
 
-  if (digitalRead(6) == HIGH) {
-    Serial.println("farther wire!");
-    while (digitalRead(7) == LOW) {}
-    if (digitalRead(7) == HIGH) {
-      Serial.println("You got the second one!");
-      return finish(); //if win
+  else if(wireChoice == 2){
+    digitalWrite(green_led, HIGH);
+    delay(100);
+    digitalWrite(green_led, LOW);
+    delay(100);
+    digitalWrite(red_led, HIGH);
+    delay(100);
+    digitalWrite(red_led, LOW);
+    delay(100);
+      
+    int wireSltn[2] = {1, 2};
+    int myWire[2] = {1, 2};
+      
+    while(digitalRead(6) == HIGH){
+      //Do nothing, because this one THEN the other shouldn't do anything
+    }
+
+    while (digitalRead(7) == LOW) {
+      //Still nothing, first wire hasn't been plugged yet
+    }
+
+    while (digitalRead(7) == HIGH) {
+      while (digitalRead(6) == LOW) {}
+      if (digitalRead(6) == HIGH) {
+        return finish(); //if win
+      }
     }
   }
 }
@@ -343,21 +381,29 @@ int puzzle_2() {
 int finish() {
   timeDisp.check(); //Refresh digit display every millisecond
   timeIterate.check(); //start counting down time variable.  Will decrement every second.
+    
   Serial.println("WELCOME TO PUZZLE 3");
   while (digitalRead(3) == LOW) {
     timeDisp.check(); //Refresh digit display every millisecond
     timeIterate.check(); //counting down time variable.  Will decrement every second.
   }
+    
   while (digitalRead(3) == HIGH) {
     timeDisp.check(); //Refresh digit display every millisecond
     timeIterate.check(); //start counting down time variable.  Will decrement every second.
+      
+    //The correct pin has been turned too, now just wait for main switch to be flipped off
+      
     while (digitalRead(A4) == HIGH) {
       timeDisp.check(); //Refresh digit display every millisecond
       timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        
+      //Switch is still on, do nothing
     }
     while (digitalRead(A4) == LOW) {
       timeDisp.check(); //Refresh digit display every millisecond
       timeIterate.check(); //start counting down time variable.  Will decrement every second.
+      //Switch is turned off while on the correct pin, so victory!
       return 1;
     }
   }
