@@ -30,7 +30,7 @@ void timeDown() { //Decrement time variable, counting in seconds
 TimedAction timeDisp = TimedAction(1, displayTime); //should run every millisecond
 TimedAction timeIterate = TimedAction(1000, timeDown); //should run every second
 
-int wireSltn[2] = {2, 1};
+int wireSltn[2] = {2, 1}; //These are going to get moved down to wire puzzle
 int myWire[2] = {2, 1};
 
 void setup() {
@@ -56,6 +56,7 @@ void setup() {
   pinMode(17, INPUT);
 
   //4 buttons
+  //Note that the current button puzzles are written as if there are only two buttons for testing purposes
   pinMode(18, INPUT); //A - left
   pinMode(19, INPUT); //B - right
   pinMode(20, INPUT); //C
