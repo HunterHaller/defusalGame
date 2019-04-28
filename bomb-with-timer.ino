@@ -1,29 +1,31 @@
 #include <SevSeg.h>
 #include <TimedAction2.h>
 
-int timer = 0000; //10 seconds
+int red_led =12;
+int green_led = 11;
+int yellow_led=10;
+int blue_led =9;
 
-void displayTime(){ //Refresh display, keep showing the time
+int timer = 0; //intialized at zero here, but set to real time when countdown starts
+
+void displayTime() { //Refresh display, keep showing the time
   sevseg.setNumber(timer, 0);
   sevseg.refreshDisplay();
 }
 
-void timeDown(){ //Decrement time variable, counting in seconds
+void timeDown() { //Decrement time variable, counting in seconds
   timer--;
-  if (timer < 0){
+  if (timer < 0) {
     //TO ADD: Play beep/tone to signal failure
     delay(300);//wait a moment, then...
     loop(); //reset loop()
-    //THIS METHOD OF RESETTING IS DEEPLY FLAWED, THE PROGRAM WILL CRASH EVENTUALLY BY DOING THIS.
+    //THIS METHOD OF RESETTING IS DEEPLY FLAWED, THE PROBLEM WILL CRASH EVENTUALLY BY DOING THIS.
     //I believe it's a fine enough solution for us, as there isn't a lot of memory being used, and we can always manually reset if needed.
   }
 }
 
 TimedAction timeDisp = TimedAction(1, displayTime); //should run every millisecond
 TimedAction timeIterate = TimedAction(1000, timeDown); //should run every second
-
-int btnSltn1[4] = {1, 2, 2, 1}; //probably stick solution arrays in each individual puzzle function
-int mySltn[4] = {1, 2, 2, 1};
 
 int wireSltn[2] = {2, 1};
 int myWire[2] = {2, 1};
@@ -35,17 +37,17 @@ void setup() {
   byte numDigits = 4;
   byte digitPins[] = {10, 11, 12, 13}; // REASSIGN ALL OF THESE TO AVOID CONFLICTS WITH BELOW
   byte segmentPins[] = {9, 2, 3, 5, 6, 8, 7, 4};
-  bool resistorsOnSegments = true; 
+  bool resistorsOnSegments = true;
   bool updateWithDelaysIn = true;
-  byte hardwareConfig = COMMON_CATHODE; 
+  byte hardwareConfig = COMMON_CATHODE;
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
   sevseg.setBrightness(90);
 
   //4 LEDs
-  pinMode(13, OUTPUT); //green
-  pinMode(14, OUTPUT); //blue
-  pinMode(15, OUTPUT); //yellow
-  pinMode(16, OUTPUT); //red
+  pinMode(red_led,OUTPUT);
+  pinMode(green_led,OUTPUT);
+  pinMode(yellow_led,OUTPUT);
+  pinMode(blue_led,OUTPUT);
 
   //Start Switch
   pinMode(17, INPUT);
@@ -74,19 +76,19 @@ void loop() {
   // Wait for user to hit start button/switch
   int startBomb = digitalRead(4);
   timeDisp.check(); //Refresh digit display every millisecond
-  
+
   if (startBomb == HIGH) {
     timeDisp.check(); //Refresh digit display every millisecond
     Serial.println("Bomb activated...");
     int result = countdown();
     //On level 3 completion, the timer stops and flashes, displaying the completion time
-    
+
     if (result == 0) {  //If time runs out:
       timeDisp.check(); //Refresh digit display every millisecond
       Serial.println("You lost!");
       digitalWrite(3, LOW);
-    } 
-    
+    }
+
     else if (result == 1) {  //If all challenges complete:
       timeDisp.check(); //Refresh digit display every millisecond
       Serial.println("You won!");
@@ -101,67 +103,214 @@ int countdown() {
   timeDisp.check(); //Refresh digit display every millisecond
   int timer = 300;
   timeIterate.check(); //start counting down time variable.  Will decrement every second.
-  return puzzle_1_1(); //initiate puzzles...
+  return puzzle_1(); //initiate puzzles...
 }
 
-int puzzle_1_1() { //PUSH BUTTON SEQUENCE
+int puzzle_1() {    //PUSH BUTTON SEQUENCE
   timeDisp.check(); //Refresh digit display every millisecond
   timeIterate.check(); //start counting down time variable.  Will decrement every second.
-  digitalWrite(13, HIGH); //light red LED
-  
-  //Looking for sequence left - right - right - left
-  for (int i = 0; i < 4; i = i + 1) {
-    timeDisp.check(); //Refresh digit display every millisecond
-    timeIterate.check(); //start counting down time variable.  Will decrement every second.
-    Serial.print("i = ");  //Serial print current array index
-    Serial.println(i);
 
-    while (digitalRead(5) == LOW && digitalRead(6) == LOW) {
+  int butChoice = random(1, 3); //pick a number between 1 and 3
+  //Depending on which number is pulled, pick a puzzle with different solutions (but always tied to the same LED pattern)
+
+  if (butChoice == 1) {
+    int btnSltn[4] = {1, 2, 2, 1};
+    int mySltn[4] = {1, 2, 2, 1};
+      
+    //Red-blue flash
+    digitalWrite(red_led, HIGH);  //LED signal could be tied to a TimedAction to let it repeat every so often while user is working on it
+    delay(100);
+    digitalWrite(red_led, LOW);
+    delay(100);
+    digitalWrite(blue_led, HIGH);
+    delay(100);
+    digitalWrite(blue_led, LOW);
+    delay(100);
+
+    //Looking for sequence left - right - right - left
+    for (int i = 0; i < 4; i = i + 1) {
       timeDisp.check(); //Refresh digit display every millisecond
       timeIterate.check(); //start counting down time variable.  Will decrement every second.
-      //Serial.println("Waiting for input...");
-    }
 
-    if (digitalRead(5) == HIGH) {
-      timeDisp.check(); //Refresh digit display every millisecond
-      timeIterate.check(); //start counting down time variable.  Will decrement every second.
-      mySltn[i] = 1;
-      delay(200);
-      Serial.println("left press!");
+      Serial.print("i = ");  //Serial print current array index
+      Serial.println(i);
 
-      printInput();
-
-      if (btnSltn1[i] != mySltn[i]) {
-        timeDisp.check(); //Refresh digit display every millisecond
-        timeIterate.check(); //start counting down time variable.  Will decrement every second. 
-        i = -1;
-        Serial.println("WRONG");
-      }
-    }
-
-    else if (digitalRead(6) == HIGH) {
-      timeDisp.check(); //Refresh digit display every millisecond
-      timeIterate.check(); //start counting down time variable.  Will decrement every second.
-      mySltn[i] = 2;
-      delay(200);
-      Serial.println("right press!");
-
-      printInput();
-
-      if (btnSltn1[i] != mySltn[i]) {
+      while (digitalRead(5) == LOW && digitalRead(6) == LOW) {
         timeDisp.check(); //Refresh digit display every millisecond
         timeIterate.check(); //start counting down time variable.  Will decrement every second.
-        i = -1;
-        Serial.println("WRONG");
+        //Serial.println("Waiting for input...");
+      }
+
+      if (digitalRead(5) == HIGH) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        mySltn[i] = 1;
+        delay(200);
+        Serial.println("left press!");
+
+        printInput();
+
+        if (btnSltn1[i] != mySltn[i]) {
+          timeDisp.check(); //Refresh digit display every millisecond
+          timeIterate.check(); //start counting down time variable.  Will decrement every second.
+          i = -1;
+          Serial.println("WRONG");
+        }
+      }
+
+      else if (digitalRead(6) == HIGH) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        mySltn[i] = 2;
+        delay(200);
+        Serial.println("right press!");
+
+        printInput();
+
+        if (btnSltn1[i] != mySltn[i]) {
+          timeDisp.check(); //Refresh digit display every millisecond
+          timeIterate.check(); //start counting down time variable.  Will decrement every second.
+          i = -1;
+          Serial.println("WRONG");
+        }
       }
     }
   }
+
+  else if (butChoice == 2) {
+    int btnSltn[4] = {2, 1, 1, 2};
+    int mySltn[4] = {2, 1, 1, 2};
+      
+    //Red-yellow flash  
+    digitalWrite(red_led, HIGH);
+    delay(100);
+    digitalWrite(red_led, LOW);
+    delay(100);
+    digitalWrite(yellow_led, HIGH);
+    delay(100);
+    digitalWrite(yellow_led, LOW);
+    delay(100);
+
+    //Looking for sequence right - left - left - right
+    for (int i = 0; i < 4; i = i + 1) { //This for loop is universal and should work for all sequences
+      timeDisp.check(); //Refresh digit display every millisecond
+      timeIterate.check(); //start counting down time variable.  Will decrement every second.
+
+      Serial.print("i = ");  //Serial print current array index
+      Serial.println(i);
+
+      while (digitalRead(5) == LOW && digitalRead(6) == LOW) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        //Serial.println("Waiting for input...");
+      }
+
+      if (digitalRead(5) == HIGH) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        mySltn[i] = 1;
+        delay(200);
+        Serial.println("left press!");
+
+        printInput();
+
+        if (btnSltn1[i] != mySltn[i]) {
+          timeDisp.check(); //Refresh digit display every millisecond
+          timeIterate.check(); //start counting down time variable.  Will decrement every second.
+          i = -1;
+          Serial.println("WRONG");
+        }
+      }
+
+      else if (digitalRead(6) == HIGH) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        mySltn[i] = 2;
+        delay(200);
+        Serial.println("right press!");
+
+        printInput();
+
+        if (btnSltn1[i] != mySltn[i]) {
+          timeDisp.check(); //Refresh digit display every millisecond
+          timeIterate.check(); //start counting down time variable.  Will decrement every second.
+          i = -1;
+          Serial.println("WRONG");
+        }
+      }
+    }
+  }
+
+  else if (butChoice == 3) {
+    int btnSltn[4] = {1, 2, 1, 2};
+    int mySltn[4] = {1, 2, 1, 2};
+      
+    //Red-green flash  
+    digitalWrite(red_led, HIGH);
+    delay(100);
+    digitalWrite(red_led, LOW);
+    delay(100);
+    digitalWrite(green_led, HIGH);
+    delay(100);
+    digitalWrite(green_led, LOW);
+    delay(100);
+
+    //Looking for sequence left - right - left - right
+    for (int i = 0; i < 4; i = i + 1) {
+      timeDisp.check(); //Refresh digit display every millisecond
+      timeIterate.check(); //start counting down time variable.  Will decrement every second.
+
+      Serial.print("i = ");  //Serial print current array index
+      Serial.println(i);
+
+      while (digitalRead(5) == LOW && digitalRead(6) == LOW) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        //Serial.println("Waiting for input...");
+      }
+
+      if (digitalRead(5) == HIGH) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        mySltn[i] = 1;
+        delay(200);
+        Serial.println("left press!");
+
+        printInput();
+
+        if (btnSltn1[i] != mySltn[i]) {
+          timeDisp.check(); //Refresh digit display every millisecond
+          timeIterate.check(); //start counting down time variable.  Will decrement every second.
+          i = -1;
+          Serial.println("WRONG");
+        }
+      }
+
+      else if (digitalRead(6) == HIGH) {
+        timeDisp.check(); //Refresh digit display every millisecond
+        timeIterate.check(); //start counting down time variable.  Will decrement every second.
+        mySltn[i] = 2;
+        delay(200);
+        Serial.println("right press!");
+
+        printInput();
+
+        if (btnSltn1[i] != mySltn[i]) {
+          timeDisp.check(); //Refresh digit display every millisecond
+          timeIterate.check(); //start counting down time variable.  Will decrement every second.
+          i = -1;
+          Serial.println("WRONG");
+        }
+      }
+    }
+  }
+
   Serial.println("Hey, you did it!");
-  digitalWrite(3, LOW); //forcing an LED off, was staying on at a point for some reason...
+
   return puzzle_2_1(); //if win, go another level down
 }
 
-int puzzle_2_1() {
+int puzzle_2() {
   Serial.println("WELCOME TO PUZZLE 2");
 
   digitalWrite(green_led, HIGH);
@@ -193,7 +342,7 @@ int finish() {
   Serial.println("WELCOME TO PUZZLE 3");
   while (digitalRead(3) == LOW) {
     timeDisp.check(); //Refresh digit display every millisecond
-    timeIterate.check(); //counting down time variable.  Will decrement every second. 
+    timeIterate.check(); //counting down time variable.  Will decrement every second.
   }
   while (digitalRead(3) == HIGH) {
     timeDisp.check(); //Refresh digit display every millisecond
@@ -209,6 +358,7 @@ int finish() {
     }
   }
 }
+
 void printInput() {
   for (int j = 0; j < 4; j = j + 1) {
     Serial.print(mySltn[j]);
