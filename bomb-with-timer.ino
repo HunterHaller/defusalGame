@@ -1,5 +1,8 @@
+//Requires SevSeg library from here: http://www.circuitbasics.com/wp-content/uploads/2017/05/SevSeg.zip
+//and TimedAction library from here: https://playground.arduino.cc/uploads/Code/TimedAction-1_6/index.zip
+
 #include <SevSeg.h>
-#include <TimedAction2.h>
+#include <TimedAction.h>
 
 int red_led =12;
 int green_led = 11;
