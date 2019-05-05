@@ -58,7 +58,7 @@ void setup() {
   pinMode(A11, INPUT);
 }
 
-int timer = 10; //intialized at ten here, but set to real time when countdown starts
+int timer = 120; //intialized at ten here, but set to real time when countdown starts
 
 void displayTime() { //Refresh display, keep showing the time
   sevseg.setNumber(timer, 0);
@@ -71,7 +71,7 @@ void timeDown() { //Decrement time variable, counting in seconds
   if (timer < 0) {
     Serial.println("You ran out of time!");
     tone(52, 300, 500); //out pin 46, random freq, for 300 ms
-    while(digitalRead(29) == HIGH){
+    while (digitalRead(29) == HIGH) {
       //Do nothing, wait for switch to be reset
     }
     loop(); //reset loop()
@@ -102,16 +102,18 @@ int rotary_finish() {
       timeIterate.check(); //start counting down time variable.  Will decrement every second.
 
       //The correct pin has been turned too, now just wait for main switch to be flipped off
-
+      
+      //WEIRD NOTE: For some reason, the big white button reads HIGH when not pressed and LOW when pressed, so I programmed the following two if statements around that fact.
+      //Also the button has a habit of being crazy sensitive and firingn without being pressed intentionally.  Be very careful with it!
       if (digitalRead(31) == HIGH) { //BIG BUTTON
         timeDisp.check(); //Refresh digit display every millisecond
         timeIterate.check(); //start counting down time variable.  Will decrement every second.
-        Serial.println("HIT THE BUTTON");
       }
       else if (digitalRead(31) == LOW) {
         timeDisp.check(); //Refresh digit display every millisecond
         timeIterate.check(); //start counting down time variable.  Will decrement every second.
         Serial.println("YOU TURNED THE THING AND HIT THE BUTTON, YAY!");
+        solved = 1;
         return 1;
       }
     }
@@ -345,6 +347,7 @@ void loop() {
     //On level 3 completion, the timer stops and flashes, displaying the completion time
     Serial.println("Your work here is done.   Turn the switch off to turn off the game and reset everything!");
     while (digitalRead(start_switch) == HIGH) {
+      //Timer should keep displaying final time but not iterate
       timeDisp.check(); //Refresh digit display every millisecond
     } //Do nothing while we wait for the switch to go down
     //Once switch goes down, should move past that loop and exit the sequence, ready to start again.
